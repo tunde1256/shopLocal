@@ -28,7 +28,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
-// Health check route
+
 app.get('/api/health', (req, res) => {
   res.status(200).json({ message: 'Server is healthy' });
 });

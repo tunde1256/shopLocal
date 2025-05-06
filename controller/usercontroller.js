@@ -5,77 +5,108 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
 const logger = require('../utils/logger');
+const { v4: uuidv4 } = require('uuid');
 
 exports.register = async (req, res) => {
     const { fullName, address, email, phone, password } = req.body;
-
+  
     try {
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({ message: 'User already exists' });
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ message: 'User already exists' });
+      }
+  
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+  
+      const user = new User({
+        fullName,
+        address,
+        email,
+        phone,
+        password: hashedPassword
+        // seller not set here – defaults apply
+      });
+  
+      await user.save();
+  
+      res.status(201).json({
+        message: 'User registered successfully',
+        user: {
+          id: user._id,
+          name: user.fullName,
+          email: user.email,
+          isSeller: user.seller.isSeller
         }
-
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
-        const user = new User({
-            fullName,
-            address,
-            email,
-            phone,
-            password: hashedPassword
-        });
-
-        await user.save();
-
-        res.status(201).json({
-            message: 'User registered successfully',
-            user: {
-                id: user._id,
-                name: user.fullName,
-                email: user.email
-            }
-        });
+      });
     } catch (error) {
-        logger.error('Error registering user:', error);
-        res.status(500).json({ message: 'Internal Server Error' });
+      logger.error('Error registering user:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
     }
-};
+  };
+  
 
-exports.login = async (req, res) => {
+  exports.becomeSeller = async (req, res) => {
+    const { shopName, category } = req.body;
+    const userId = req.user.id;
+  
+    try {
+      const user = await User.findById(userId);
+      if (!user) return res.status(404).json({ message: 'User not found' });
+  
+      if (user.seller && user.seller.isSeller) {
+        return res.status(400).json({ message: 'User is already a seller' });
+      }
+  
+      user.seller = {
+        isSeller: true,
+        sellerId: uuidv4(),
+        shopName,
+        category
+      };
+  
+      await user.save();
+  
+      res.status(200).json({
+        message: 'Seller profile created',
+        seller: user.seller
+      });
+    } catch (error) {
+      logger.error('Error becoming seller:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  };
+  
+    
+  exports.login = async (req, res) => {
     const { email, password } = req.body;
-
+  
     try {
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(401).json({ message: 'Invalid email or password' });
+      const user = await User.findOne({ email });
+      if (!user) return res.status(401).json({ message: 'Invalid email or password' });
+  
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) return res.status(401).json({ message: 'Invalid email or password' });
+  
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  
+      const dashboard = user.seller.isSeller ? 'seller' : 'user';
+  
+      res.status(200).json({
+        token,
+        user: {
+          id: user._id,
+          name: user.fullName,
+          email: user.email,
+          dashboard
         }
-
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(401).json({ message: 'Invalid email or password' });
-        }
-
-        const token = jwt.sign(
-            { id: user._id },
-            process.env.JWT_SECRET,
-            { expiresIn: '1h' }
-        );
-
-        res.status(200).json({
-            token,
-            user: {
-                id: user._id,
-                name: user.fullName,
-                email: user.email
-            }
-        });
+      });
     } catch (error) {
-        logger.error('Error logging in user:', error);
-        res.status(500).json({ message: 'Internal Server Error' });
+      logger.error('Login error:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
     }
-};
-
+  };
+  
 exports.forgotPassword = async (req, res) => {
     const { email } = req.body;
 

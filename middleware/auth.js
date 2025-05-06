@@ -1,20 +1,29 @@
 const jwt = require('jsonwebtoken');
 
-exports.authenticateJWT = (req, res, next) => {
-  const token = req.header('Authorization')?.split(' ')[1];
-  if (!token) return res.status(403).json({ message: 'Access denied' });
+const authenticateJWT = (req, res, next) => {
+  const authHeader = req.headers.authorization;
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ message: 'Invalid token' });
-    req.user = user;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Unauthorized: No token provided' });
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = { id: decoded.id, isAdmin: decoded.isAdmin }; // add other info if needed
     next();
-  });
+  } catch (err) {
+    return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+  }
 };
 
-exports.isAdmin = (req, res, next) => {
+const isAdmin = (req, res, next) => {
   if (req.user?.isAdmin) {
     next();
   } else {
     res.status(403).json({ message: 'Admin access required' });
   }
 };
+
+module.exports = { authenticateJWT, isAdmin };

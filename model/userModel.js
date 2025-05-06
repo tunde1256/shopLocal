@@ -44,8 +44,16 @@ const userSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
-  }
-});
+  },
+
+    seller: {
+      isSeller: { type: Boolean, default: false },
+      sellerId: { type: String, default: null },
+      shopName: { type: String, default: null },
+      category: { type: String, default: null }
+    }
+  });
+  
 
 
 const User = mongoose.model('User', userSchema);
