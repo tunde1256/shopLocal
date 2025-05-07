@@ -25,7 +25,7 @@ exports.register = async (req, res) => {
         email,
         phone,
         password: hashedPassword
-        // seller not set here – defaults apply
+      
       });
   
       await user.save();
