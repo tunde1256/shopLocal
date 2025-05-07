@@ -8,7 +8,7 @@ const logger = require('../utils/logger');
 const { v4: uuidv4 } = require('uuid');
 
 exports.register = async (req, res) => {
-    const { fullName, address, email, phone, password } = req.body;
+    const { fullName, email, phone, password } = req.body;
   
     try {
       const existingUser = await User.findOne({ email });
@@ -21,7 +21,6 @@ exports.register = async (req, res) => {
   
       const user = new User({
         fullName,
-        address,
         email,
         phone,
         password: hashedPassword
