@@ -10,9 +10,9 @@ router.post('/forgot-password', userController.forgotPassword);
 router.post('/reset-password', userController.resetPassword);
 
 // Protected routes (authentication required)
-router.get('/getUser/:id', authenticateJWT, userController.getUser);
-router.get('/getAllUsers', authenticateJWT, userController.getAllUsers);
-router.patch('/become-seller', authenticateJWT, userController.becomeSeller);
-router.delete('/deleteUser/:id', authenticateJWT, userController.deleteUser);
+router.get('/getUser/:id', userController.getUser);
+router.get('/getAllUsers', userController.getAllUsers);
+router.patch('/become-seller', userController.becomeSeller);
+router.delete('/deleteUser/:id', userController.deleteUser);
 
 module.exports = router;
