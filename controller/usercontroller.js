@@ -110,57 +110,77 @@ exports.forgotPassword = async (req, res) => {
     const { email } = req.body;
 
     try {
+        // 1. Find user by email
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        const token = crypto.randomBytes(20).toString('hex');
+
+        // 2. Generate a 6-digit numeric token
+        const token = Math.floor(100000 + Math.random() * 900000).toString(); // e.g. "345678"
+
+        // 3. Assign token and expiry to user
         user.resetPasswordToken = token;
         user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
-        await user.save();
+
+        // 4. Save user without triggering full validation errors
+        await user.save({ validateBeforeSave: false });
+
+        // 5. Configure transporter
         const transporter = nodemailer.createTransport({
             service: 'Gmail',
             auth: {
-                user: process.env.GMAIL_USER,
-                pass: process.env.GMAIL_PASS 
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
             }
-        }); 
+        });
+
+        // 6. Define email content with token only
         const mailOptions = {
             to: user.email,
-            from: process.env.GMAIL_USER,
-            subject: 'Password Reset',
-            text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n` +
-                `Please click on the following link, or paste this into your browser to complete the process:\n\n` +
-                `http://${req.headers.host}/reset/${token}\n\n` +
-                `If you did not request this, please ignore this email and your password will remain unchanged.\n`
+            from: process.env.EMAIL_USER,
+            subject: 'Password Reset Token',
+            text: `You have requested a password reset.\n\n` +
+                  `Use the following 6-digit token to reset your password:\n\n` +
+                  `${token}\n\n` +
+                  `This token will expire in 1 hour.\n\n` +
+                  `If you did not request this, please ignore this email.`
         };
+
         await transporter.sendMail(mailOptions);
-        res.status(200).json({ message: 'Password reset link sent to your email' });
-    }
-    catch (error) {
+
+        return res.status(200).json({ message: 'Password reset token sent to your email', token });
+
+    } catch (error) {
         logger.error('Error sending password reset email:', error);
-        res.status(500).json({ message: 'Internal Server Error' });
+        return res.status(500).json({ message: 'Internal Server Error' });
     }
-}
+};
+
 exports.resetPassword = async (req, res) => {
     const { token, password } = req.body;
 
     try {
-        const user
-    = await User.findOne({
+        const user = await User.findOne({
             resetPasswordToken: token,
             resetPasswordExpires: { $gt: Date.now() }
         });
+
         if (!user) {
             return res.status(400).json({ message: 'Password reset token is invalid or has expired' });
         }
-        user.password = password;
+
+        // Hash password before saving
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(password, salt);
+
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;
+
         await user.save();
+
         res.status(200).json({ message: 'Password has been reset successfully' });
-    }
-    catch (error) {
+    } catch (error) {
         logger.error('Error resetting password:', error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
@@ -180,6 +200,15 @@ exports.getUser = async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 }
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, 'name email _id'); 
+    res.status(200).json({ users });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
 exports.updateUser = async (req, res) => {
     const userId = req.params.id;
     const { name, address, email, phone } = req.body;

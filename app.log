@@ -345,3 +345,29 @@
 2025-05-06T14:42:54.153Z [info]: Server is running on port 4070
 2025-05-06T14:43:08.766Z [info]: Server is running on port 4070
 2025-05-07T08:06:37.420Z [info]: Server is running on port 4070
+2025-05-07T14:07:01.826Z [info]: Server is running on port 4070
+2025-05-21T06:11:22.203Z [info]: Server is running on port 4070
+2025-05-21T06:14:34.093Z [info]: Server is running on port 4070
+2025-05-21T06:14:37.117Z [info]: Server is running on port 4070
+2025-05-21T06:14:44.501Z [error]: Error fetching user: Cast to ObjectId failed for value "1" (type string) at path "_id" for model "User"
+2025-05-21T06:16:41.962Z [info]: Server is running on port 4070
+2025-05-21T06:16:57.740Z [info]: Server is running on port 4070
+2025-05-21T06:19:37.507Z [info]: Server is running on port 4070
+2025-05-21T06:20:48.001Z [info]: Server is running on port 4070
+2025-05-21T06:31:15.922Z [info]: Server is running on port 4070
+2025-05-21T06:39:50.062Z [error]: Error sending password reset email: Missing credentials for "PLAIN"
+2025-05-21T06:40:52.158Z [info]: Server is running on port 4070
+2025-05-21T06:43:46.587Z [error]: Error sending password reset email: User validation failed: fullName: Path `fullName` is required.
+2025-05-21T06:43:57.392Z [error]: Error sending password reset email: User validation failed: fullName: Path `fullName` is required.
+2025-05-21T06:46:54.870Z [info]: Server is running on port 4070
+2025-05-21T06:50:00.037Z [info]: Server is running on port 4070
+2025-05-21T06:53:36.242Z [info]: Server is running on port 4070
+2025-05-21T07:04:18.630Z [info]: Server is running on port 4070
+2025-05-21T07:11:41.894Z [info]: Server is running on port 4070
+2025-05-21T07:13:34.845Z [info]: Server is running on port 4070
+2025-05-21T07:25:32.838Z [info]: Server is running on port 4070
+2025-05-21T07:25:41.063Z [error]: Error resetting password: User validation failed: fullName: Path `fullName` is required.
+2025-05-21T07:27:08.071Z [info]: Server is running on port 4070
+2025-05-21T07:27:12.721Z [error]: Error resetting password: User validation failed: fullName: Path `fullName` is required.
+2025-05-21T07:29:25.871Z [info]: Server is running on port 4070
+2025-05-21T07:41:05.738Z [info]: Server is running on port 4070
